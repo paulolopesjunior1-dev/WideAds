@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WideAds · Pipeline BDR/SDR</title><style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f1f5f9;color:#14202e;font-size:14px;-webkit-text-size-adjust:100%}
+#app{max-width:1280px;margin:0 auto}
+.hdr{background:#0E1B2D;color:#fff;padding:14px 16px 0;position:sticky;top:0;z-index:20}
+.hdr-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.brand{font-weight:800;font-size:17px}.brand span{color:#9fb3c8;font-weight:500;font-size:13px}
+.acts{display:flex;gap:6px;flex-wrap:wrap}
+.btn{background:#17C07B;color:#062417;border:none;padding:7px 12px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer}
+.btn.ghost{background:transparent;color:#cbd6e2;border:1px solid #2b4a63}
+.btn.ghost.danger{color:#fda4a4;border-color:#7f3838}
+.btn.sm{padding:4px 8px;font-size:12px}
+.chips{display:flex;gap:8px;margin:12px 0 10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.chip{background:#17283f;border-radius:10px;padding:8px 12px;min-width:78px;text-align:center;flex:0 0 auto}
+.chip b{display:block;font-size:20px;color:#fff}.chip span{font-size:11px;color:#9fb3c8}
+.tabs{display:flex;gap:2px}
+.tab{background:transparent;color:#9fb3c8;border:none;padding:11px 14px;font-weight:700;font-size:13px;cursor:pointer;border-bottom:3px solid transparent}
+.tab.on{color:#fff;border-bottom-color:#17C07B}
+.body{padding:14px 16px 60px}
+.filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.inp{padding:8px 10px;border:1px solid #d8dee7;border-radius:8px;font-size:13px;background:#fff;color:#14202e}
+.filters .inp{flex:1;min-width:120px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px;box-shadow:0 1px 3px rgba(15,30,50,.05)}
+.card.nopad{padding:0;overflow:hidden}
+.card-h{font-weight:800;font-size:14px;margin-bottom:10px;color:#0E1B2D}
+.funnel{display:flex;flex-direction:column;gap:9px}
+.frow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.flabel{width:78px;font-weight:700;font-size:12px;color:#334155}
+.fbarwrap{flex:1;min-width:120px;background:#eef2f7;border-radius:6px;height:24px;position:relative;overflow:hidden}
+.fbar{height:100%;background:linear-gradient(90deg,#17C07B,#2CAFE0);border-radius:6px}
+.fval{position:absolute;right:8px;top:3px;font-weight:800;font-size:13px;color:#0E1B2D}
+.fmeta{font-size:11px;color:#64748b;width:100%;padding-left:88px}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;color:#64748b;font-size:11px;text-transform:uppercase;padding:5px 6px;border-bottom:1px solid #e2e8f0}
+.tbl td{padding:6px;border-bottom:1px solid #f1f5f9}
+.tbl .mut{color:#94a3b8}
+.badge{font-size:10px;font-weight:800;padding:1px 6px;border-radius:6px;white-space:nowrap}
+/* board */
+.board{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px}
+.col{flex:0 0 248px;background:#eef2f7;border-radius:12px;display:flex;flex-direction:column;max-height:calc(100vh - 230px)}
+.col-h{font-weight:800;font-size:13px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:12px 12px 0 0}
+.col-h .count{background:#0E1B2D;color:#fff;border-radius:10px;font-size:11px;padding:1px 8px}
+.col-body{padding:8px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.empty{color:#94a3b8;font-size:12px;text-align:center;padding:14px}
+.lead{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;cursor:pointer;transition:box-shadow .1s}
+.lead:hover{box-shadow:0 2px 8px rgba(15,30,50,.1)}
+.lead.lost{opacity:.5}
+.lead-top{display:flex;justify-content:space-between;gap:6px;align-items:flex-start}
+.lead-name{font-weight:700;font-size:13px;line-height:1.2}
+.lead-sub{font-size:11px;color:#64748b;margin-top:3px}
+.lead-meta{font-size:11px;color:#475569;margin-top:6px;display:flex;align-items:center;gap:5px}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.lead-actions{display:flex;gap:6px;margin-top:9px;justify-content:flex-end}
+.mini{width:30px;height:28px;border:1px solid #d8dee7;background:#fff;border-radius:7px;cursor:pointer;font-size:13px;color:#334155}
+.mini.go{background:#17C07B;color:#062417;border-color:#17C07B;font-weight:800}
+/* data table */
+.tablewrap{overflow-x:auto}
+.data{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
+.data thead th{position:sticky;top:0;background:#0E1B2D;color:#fff;font-size:11px;text-transform:uppercase;padding:9px 8px;text-align:left}
+.data td{padding:6px 8px;border-bottom:1px solid #eef2f7}
+.data tr.lost{opacity:.5}
+.data .b{font-weight:700}
+.cell{border:1px solid #e2e8f0;border-radius:6px;padding:3px 4px;font-size:12px;background:#fff}
+.cell.stage{font-weight:700}
+.hint{font-size:12px;color:#64748b;margin-top:8px}
+.totrow{background:#fff7e6;font-weight:800}.totrow td{border-top:2px solid #B7791F}
+.pbar{display:inline-block;width:60px;height:8px;background:#eef2f7;border-radius:4px;overflow:hidden;vertical-align:middle;margin-right:5px}
+.pbar div{height:100%;background:#17C07B}
+/* modal */
+.overlay{position:fixed;inset:0;background:rgba(8,16,28,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:14px}
+.modal{background:#fff;border-radius:16px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-h{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:16px;padding:16px;border-bottom:1px solid #eef2f7}
+.x{background:none;border:none;font-size:18px;cursor:pointer;color:#64748b}
+.modal-stage{display:flex;gap:5px;padding:12px 16px;flex-wrap:wrap;border-bottom:1px solid #eef2f7}
+.sg{border:1px solid #d8dee7;background:#fff;border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;color:#475569}
+.sg.on{background:var(--c);border-color:var(--c);color:#fff}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px}
+.fld{display:flex;flex-direction:column;gap:4px}.fld.wide{grid-column:1/3}
+.fld span{font-size:11px;color:#64748b;font-weight:600}
+.modal-info{padding:0 16px 8px;font-size:12px;color:#64748b}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;padding:14px 16px;border-top:1px solid #eef2f7;flex-wrap:wrap}
+.modal-foot .btn.ghost{border:1px solid #d8dee7;color:#334155}
+.user{color:#cbd6e2;font-size:12px;align-self:center;margin-right:2px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.banner{background:#fef3c7;color:#92500e;font-size:12px;padding:7px 16px;text-align:center;border-bottom:1px solid #fde68a}
+.banner.seed{background:#e7f6ee;color:#0E8F5C;border-color:#bfe8d2}
+.banner .btn.sm{padding:3px 8px;font-size:12px;margin-left:6px}
+.loginwrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0E1B2D;padding:18px}
+.loginbox{background:#fff;border-radius:18px;padding:30px 26px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.loginbrand{font-weight:800;font-size:26px;color:#0E1B2D}
+.loginsub{color:#64748b;font-size:13px;margin:2px 0 20px}
+.loginform{display:flex;flex-direction:column;gap:12px}
+.loginform .inp{padding:11px 12px;font-size:14px}
+.loginerr{background:#fce4e4;color:#b42318;font-size:12px;padding:8px 10px;border-radius:8px}
+.logininfo{background:#e4f7ed;color:#0f7a4d;font-size:12px;padding:8px 10px;border-radius:8px}
+.btn.lg{padding:12px;font-size:15px;width:100%;margin-top:4px}
+.loginalt{font-size:12px;color:#64748b;text-align:center}
+.loginalt a{color:#17C07B;font-weight:700;cursor:pointer}
+@media(max-width:760px){
+  .grid2{grid-template-columns:1fr}
+  .form{grid-template-columns:1fr}.fld.wide{grid-column:1}
+  .brand{font-size:15px}.chip{min-width:64px}.chip b{font-size:17px}
+}
+</style></head>
+<body><div id="app"></div><script>
+const DATA = {"leads": [{"nome": "Largo Treze (Santo Amaro)", "rede": "Drogal (assoc.)", "vertical": "Farmácias", "regiao": "Sul", "fluxo": 4800, "tier": "Tier 2", "score": 14.4, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "reuniao", "perdido": false, "obs": "", "id": 1}, {"nome": "Av. Paes de Barros (Mooca)", "rede": "Farmais (assoc.)", "vertical": "Farmácias", "regiao": "Leste", "fluxo": 4600, "tier": "Tier 2", "score": 9.2, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "contatado", "perdido": false, "obs": "", "id": 2}, {"nome": "Rua Augusta (trecho baixo)", "rede": "Independente", "vertical": "Farmácias", "regiao": "Centro", "fluxo": 4500, "tier": "Tier 2", "score": 9.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "contatado", "perdido": false, "obs": "", "id": 3}, {"nome": "Largo da Penha", "rede": "Farmácias Associadas", "vertical": "Farmácias", "regiao": "Leste", "fluxo": 4300, "tier": "Tier 2", "score": 8.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "contatado", "perdido": false, "obs": "", "id": 4}, {"nome": "Terminal Vila Prudente", "rede": "Drogal (assoc.)", "vertical": "Farmácias", "regiao": "Leste", "fluxo": 4200, "tier": "Tier 2", "score": 12.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "contatado", "perdido": false, "obs": "", "id": 5}, {"nome": "Entorno Largo da Batata", "rede": "Independente", "vertical": "Farmácias", "regiao": "Oeste", "fluxo": 4100, "tier": "Tier 2", "score": 8.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "contatado", "perdido": false, "obs": "", "id": 6}, {"nome": "Itaquera (Av. Líder)", "rede": "Farma Conde (assoc.)", "vertical": "Farmácias", "regiao": "Leste", "fluxo": 4000, "tier": "Tier 2", "score": 8.0, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "contatado", "perdido": false, "obs": "", "id": 7}, {"nome": "Tucuruvi (entorno terminal)", "rede": "Independente", "vertical": "Farmácias", "regiao": "Norte", "fluxo": 3900, "tier": "Tier 2", "score": 7.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "contatado", "perdido": false, "obs": "", "id": 8}, {"nome": "Campo Limpo", "rede": "Drogarias Total (assoc.)", "vertical": "Farmácias", "regiao": "Sul", "fluxo": 3800, "tier": "Tier 2", "score": 7.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "contatado", "perdido": false, "obs": "", "id": 9}, {"nome": "Brás (R. Maria Marcolina)", "rede": "Independente", "vertical": "Farmácias", "regiao": "Leste", "fluxo": 3700, "tier": "Tier 2", "score": 7.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "contatado", "perdido": false, "obs": "", "id": 10}, {"nome": "Pinheiros (R. dos Pinheiros)", "rede": "Farmais (assoc.)", "vertical": "Farmácias", "regiao": "Oeste", "fluxo": 3600, "tier": "Tier 2", "score": 7.2, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 11}, {"nome": "Santana (Voluntários da Pátria)", "rede": "Independente", "vertical": "Farmácias", "regiao": "Norte", "fluxo": 3500, "tier": "Tier 2", "score": 7.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 12}, {"nome": "Campo Belo (V. José Diniz)", "rede": "Drogal (assoc.)", "vertical": "Farmácias", "regiao": "Sul", "fluxo": 3400, "tier": "Tier 2", "score": 6.8, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 13}, {"nome": "Lapa (R. 12 de Outubro)", "rede": "Independente", "vertical": "Farmácias", "regiao": "Oeste", "fluxo": 3300, "tier": "Tier 2", "score": 6.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 14}, {"nome": "Sapopemba", "rede": "Farmácias Associadas", "vertical": "Farmácias", "regiao": "Leste", "fluxo": 3200, "tier": "Tier 2", "score": 6.4, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 15}, {"nome": "Vila Mariana (Domingos de Morais)", "rede": "Independente", "vertical": "Farmácias", "regiao": "Sul", "fluxo": 3100, "tier": "Tier 2", "score": 6.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 16}, {"nome": "Cidade Tiradentes", "rede": "Farma Conde (assoc.)", "vertical": "Farmácias", "regiao": "Leste", "fluxo": 3000, "tier": "Tier 2", "score": 6.0, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 17}, {"nome": "Entorno Tatuapé", "rede": "Independente", "vertical": "Farmácias", "regiao": "Leste", "fluxo": 2900, "tier": "Tier 2", "score": 5.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 18}, {"nome": "Capão Redondo", "rede": "Drogarias Total (assoc.)", "vertical": "Farmácias", "regiao": "Sul", "fluxo": 2800, "tier": "Tier 2", "score": 5.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 19}, {"nome": "Pirituba (centro)", "rede": "Independente", "vertical": "Farmácias", "regiao": "Oeste", "fluxo": 2700, "tier": "Tier 2", "score": 5.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 20}, {"nome": "Moema (entorno Ibirapuera)", "rede": "Farmais (assoc.)", "vertical": "Farmácias", "regiao": "Sul", "fluxo": 2600, "tier": "Tier 2", "score": 5.2, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 21}, {"nome": "Brasilândia", "rede": "Independente", "vertical": "Farmácias", "regiao": "Norte", "fluxo": 2500, "tier": "Tier 2", "score": 2.5, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 22}, {"nome": "Vila Prudente (centro)", "rede": "Drogal (assoc.)", "vertical": "Farmácias", "regiao": "Leste", "fluxo": 2400, "tier": "Tier 3", "score": 4.8, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 23}, {"nome": "Itaim Paulista", "rede": "Independente", "vertical": "Farmácias", "regiao": "Leste", "fluxo": 2300, "tier": "Tier 3", "score": 2.3, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 24}, {"nome": "Vila Maria (Marginal Tietê)", "rede": "Assaí Atacadista", "vertical": "Supermercados", "regiao": "Norte", "fluxo": 28000, "tier": "Tier 1", "score": 84.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "ativo", "perdido": false, "obs": "", "id": 25}, {"nome": "Av. dos Bandeirantes", "rede": "Atacadão", "vertical": "Supermercados", "regiao": "Sul", "fluxo": 24000, "tier": "Tier 1", "score": 72.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "ativo", "perdido": false, "obs": "", "id": 26}, {"nome": "Av. Pacaembu", "rede": "Carrefour (hiper)", "vertical": "Supermercados", "regiao": "Oeste", "fluxo": 20000, "tier": "Tier 1", "score": 60.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "ativo", "perdido": false, "obs": "", "id": 27}, {"nome": "Av. Cruzeiro do Sul (Santana)", "rede": "Sam's Club", "vertical": "Supermercados", "regiao": "Norte", "fluxo": 16000, "tier": "Tier 1", "score": 48.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "assinado", "perdido": false, "obs": "", "id": 28}, {"nome": "Anhanguera (Pirituba)", "rede": "Extra Hiper", "vertical": "Supermercados", "regiao": "Oeste", "fluxo": 15000, "tier": "Tier 1", "score": 45.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "assinado", "perdido": false, "obs": "", "id": 29}, {"nome": "Av. Ragueb Chohfi", "rede": "Tenda Atacado", "vertical": "Supermercados", "regiao": "Leste", "fluxo": 14000, "tier": "Tier 1", "score": 42.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "assinado", "perdido": false, "obs": "", "id": 30}, {"nome": "Av. Brig. Faria Lima", "rede": "Pão de Açúcar", "vertical": "Supermercados", "regiao": "Oeste", "fluxo": 12000, "tier": "Tier 1", "score": 36.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "assinado", "perdido": false, "obs": "", "id": 31}, {"nome": "Av. do Estado (Bom Retiro)", "rede": "Roldão Atacadista", "vertical": "Supermercados", "regiao": "Centro", "fluxo": 11000, "tier": "Tier 1", "score": 33.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "assinado", "perdido": false, "obs": "", "id": 32}, {"nome": "Av. Paulista", "rede": "Carrefour Bairro", "vertical": "Supermercados", "regiao": "Paulista", "fluxo": 10000, "tier": "Tier 1", "score": 20.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "reuniao", "perdido": false, "obs": "", "id": 33}, {"nome": "Vila Prudente (terminal)", "rede": "Sonda Supermercados", "vertical": "Supermercados", "regiao": "Leste", "fluxo": 9000, "tier": "Tier 1", "score": 27.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "reuniao", "perdido": false, "obs": "", "id": 34}, {"nome": "Itaquera (terminal)", "rede": "Dia Supermercado", "vertical": "Supermercados", "regiao": "Leste", "fluxo": 8500, "tier": "Tier 1", "score": 17.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "reuniao", "perdido": false, "obs": "", "id": 35}, {"nome": "Largo da Batata (Pinheiros)", "rede": "St Marche", "vertical": "Supermercados", "regiao": "Oeste", "fluxo": 8000, "tier": "Tier 1", "score": 24.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "reuniao", "perdido": false, "obs": "", "id": 36}, {"nome": "Moema", "rede": "Oba Hortifruti", "vertical": "Supermercados", "regiao": "Sul", "fluxo": 7500, "tier": "Tier 2", "score": 22.5, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "reuniao", "perdido": false, "obs": "", "id": 37}, {"nome": "Sumaré", "rede": "Mambo Supermercado", "vertical": "Supermercados", "regiao": "Oeste", "fluxo": 7000, "tier": "Tier 2", "score": 21.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "reuniao", "perdido": false, "obs": "", "id": 38}, {"nome": "Campo Limpo", "rede": "Rede Smart (assoc.)", "vertical": "Supermercados", "regiao": "Sul", "fluxo": 6500, "tier": "Tier 2", "score": 13.0, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "contatado", "perdido": false, "obs": "", "id": 39}, {"nome": "Tatuapé", "rede": "Natural da Terra", "vertical": "Supermercados", "regiao": "Leste", "fluxo": 6000, "tier": "Tier 2", "score": 18.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "reuniao", "perdido": false, "obs": "", "id": 40}, {"nome": "Santo Amaro", "rede": "Semar Supermercados", "vertical": "Supermercados", "regiao": "Sul", "fluxo": 5500, "tier": "Tier 2", "score": 11.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "contatado", "perdido": false, "obs": "", "id": 41}, {"nome": "Penha", "rede": "Rede Smart (assoc.)", "vertical": "Supermercados", "regiao": "Leste", "fluxo": 5000, "tier": "Tier 2", "score": 10.0, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "contatado", "perdido": false, "obs": "", "id": 42}, {"nome": "Liberdade", "rede": "Hirota Food", "vertical": "Supermercados", "regiao": "Centro", "fluxo": 4500, "tier": "Tier 2", "score": 9.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "contatado", "perdido": false, "obs": "", "id": 43}, {"nome": "Lapa", "rede": "Enxuto", "vertical": "Supermercados", "regiao": "Oeste", "fluxo": 4200, "tier": "Tier 2", "score": 8.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "contatado", "perdido": false, "obs": "", "id": 44}, {"nome": "Brás", "rede": "Andorinha Supermercados", "vertical": "Supermercados", "regiao": "Leste", "fluxo": 4000, "tier": "Tier 2", "score": 8.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "contatado", "perdido": false, "obs": "", "id": 45}, {"nome": "Cidade Ademar", "rede": "Rede União (central)", "vertical": "Supermercados", "regiao": "Sul", "fluxo": 3800, "tier": "Tier 2", "score": 7.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "contatado", "perdido": false, "obs": "", "id": 46}, {"nome": "Guaianases", "rede": "Supermercado Violeta", "vertical": "Supermercados", "regiao": "Leste", "fluxo": 3500, "tier": "Tier 2", "score": 7.0, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 47}, {"nome": "Sacomã", "rede": "Dia% (proximidade)", "vertical": "Supermercados", "regiao": "Sul", "fluxo": 3200, "tier": "Tier 2", "score": 6.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 48}, {"nome": "Capão Redondo", "rede": "Minimercado (independente)", "vertical": "Supermercados", "regiao": "Sul", "fluxo": 2800, "tier": "Tier 3", "score": 2.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 49}, {"nome": "Itaim Paulista", "rede": "Rede Plus (assoc.)", "vertical": "Supermercados", "regiao": "Leste", "fluxo": 2600, "tier": "Tier 3", "score": 2.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 50}, {"nome": "Brasilândia", "rede": "Mercadinho de bairro (indep.)", "vertical": "Supermercados", "regiao": "Norte", "fluxo": 2200, "tier": "Tier 3", "score": 2.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 51}, {"nome": "Perdizes", "rede": "Empório / minimercado (indep.)", "vertical": "Supermercados", "regiao": "Oeste", "fluxo": 2000, "tier": "Tier 3", "score": 4.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 52}, {"nome": "Cidade Tiradentes", "rede": "Rede Mais (central)", "vertical": "Supermercados", "regiao": "Leste", "fluxo": 1600, "tier": "Tier 3", "score": 1.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 53}, {"nome": "Parelheiros", "rede": "Minimercado (independente)", "vertical": "Supermercados", "regiao": "Sul", "fluxo": 1200, "tier": "Tier 3", "score": 1.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 54}, {"nome": "Av. Paulista", "rede": "McDonald's (franquia)", "vertical": "Food service", "regiao": "Paulista", "fluxo": 3000, "tier": "Tier 1", "score": 6.0, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 55}, {"nome": "Shopping Ibirapuera", "rede": "Outback", "vertical": "Food service", "regiao": "Sul", "fluxo": 2200, "tier": "Tier 1", "score": 6.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 56}, {"nome": "Av. Sapopemba", "rede": "Habib's", "vertical": "Food service", "regiao": "Leste", "fluxo": 2000, "tier": "Tier 1", "score": 4.0, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 57}, {"nome": "Shopping JK Iguatemi", "rede": "Coco Bambu", "vertical": "Food service", "regiao": "Oeste", "fluxo": 1900, "tier": "Tier 1", "score": 5.7, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 58}, {"nome": "Av. São João (Centro)", "rede": "Bar Brahma", "vertical": "Food service", "regiao": "Centro", "fluxo": 1800, "tier": "Tier 1", "score": 5.4, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 59}, {"nome": "Terminal Bandeira", "rede": "Giraffas", "vertical": "Food service", "regiao": "Centro", "fluxo": 1700, "tier": "Tier 1", "score": 3.4, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 60}, {"nome": "Shopping Morumbi", "rede": "Madero", "vertical": "Food service", "regiao": "Sul", "fluxo": 1600, "tier": "Tier 1", "score": 4.8, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 61}, {"nome": "Av. Paulista", "rede": "Spoleto", "vertical": "Food service", "regiao": "Paulista", "fluxo": 1500, "tier": "Tier 1", "score": 3.0, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 62}, {"nome": "Av. Faria Lima", "rede": "Restaurante a quilo (self-service)", "vertical": "Food service", "regiao": "Oeste", "fluxo": 1400, "tier": "Tier 2", "score": 2.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 63}, {"nome": "Mercadão (Centro)", "rede": "Bar do Mané", "vertical": "Food service", "regiao": "Centro", "fluxo": 1300, "tier": "Tier 2", "score": 3.9, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 64}, {"nome": "Sumaré", "rede": "Pizzaria Bráz", "vertical": "Food service", "regiao": "Oeste", "fluxo": 1200, "tier": "Tier 2", "score": 3.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 65}, {"nome": "Moema", "rede": "China in Box", "vertical": "Food service", "regiao": "Sul", "fluxo": 1100, "tier": "Tier 2", "score": 2.2, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 66}, {"nome": "Pinheiros", "rede": "Boteco São Bento", "vertical": "Food service", "regiao": "Oeste", "fluxo": 1050, "tier": "Tier 2", "score": 3.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 67}, {"nome": "Vila Mariana", "rede": "Veloso Bar", "vertical": "Food service", "regiao": "Sul", "fluxo": 1000, "tier": "Tier 2", "score": 3.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 68}, {"nome": "Av. Pedroso de Morais", "rede": "Cervejaria Nacional", "vertical": "Food service", "regiao": "Oeste", "fluxo": 950, "tier": "Tier 2", "score": 2.8, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 69}, {"nome": "Praça da Sé", "rede": "Restaurante popular (self-service)", "vertical": "Food service", "regiao": "Centro", "fluxo": 900, "tier": "Tier 2", "score": 1.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 70}, {"nome": "Terminal Itaquera", "rede": "Subway", "vertical": "Food service", "regiao": "Leste", "fluxo": 850, "tier": "Tier 2", "score": 1.7, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 71}, {"nome": "Tatuapé", "rede": "Boteco do bairro (indep.)", "vertical": "Food service", "regiao": "Leste", "fluxo": 800, "tier": "Tier 2", "score": 2.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 72}, {"nome": "Shopping Aricanduva", "rede": "Patroni Pizza", "vertical": "Food service", "regiao": "Leste", "fluxo": 750, "tier": "Tier 2", "score": 1.5, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 73}, {"nome": "Santana", "rede": "Restaurante self-service", "vertical": "Food service", "regiao": "Norte", "fluxo": 700, "tier": "Tier 2", "score": 1.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 74}, {"nome": "Vila Madalena", "rede": "Hamburgueria artesanal", "vertical": "Food service", "regiao": "Oeste", "fluxo": 650, "tier": "Tier 3", "score": 2.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 75}, {"nome": "Mooca", "rede": "Bar de esquina (indep.)", "vertical": "Food service", "regiao": "Leste", "fluxo": 600, "tier": "Tier 3", "score": 1.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 76}, {"nome": "Lapa", "rede": "Lanchonete (indep.)", "vertical": "Food service", "regiao": "Oeste", "fluxo": 560, "tier": "Tier 3", "score": 1.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 77}, {"nome": "Penha", "rede": "Pastelaria (indep.)", "vertical": "Food service", "regiao": "Leste", "fluxo": 520, "tier": "Tier 3", "score": 1.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 78}, {"nome": "Sacomã", "rede": "Boteco (indep.)", "vertical": "Food service", "regiao": "Sul", "fluxo": 480, "tier": "Tier 3", "score": 1.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 79}, {"nome": "Campo Limpo", "rede": "Restaurante de bairro (indep.)", "vertical": "Food service", "regiao": "Sul", "fluxo": 440, "tier": "Tier 3", "score": 0.9, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 80}, {"nome": "Brás", "rede": "Bar / petiscaria (indep.)", "vertical": "Food service", "regiao": "Leste", "fluxo": 400, "tier": "Tier 3", "score": 1.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 81}, {"nome": "Guaianases", "rede": "Lanchonete (indep.)", "vertical": "Food service", "regiao": "Leste", "fluxo": 360, "tier": "Tier 3", "score": 0.7, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 82}, {"nome": "Brasilândia", "rede": "Bar (indep.)", "vertical": "Food service", "regiao": "Norte", "fluxo": 320, "tier": "Tier 3", "score": 1.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 83}, {"nome": "Parelheiros", "rede": "Espeteria (indep.)", "vertical": "Food service", "regiao": "Sul", "fluxo": 280, "tier": "Tier 3", "score": 0.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 84}, {"nome": "Haddock Lobo (Consolação)", "rede": "Bella Paulista (24h)", "vertical": "Padarias", "regiao": "Paulista", "fluxo": 6000, "tier": "Tier 1", "score": 18.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "reuniao", "perdido": false, "obs": "", "id": 85}, {"nome": "Estados Unidos (Jardins)", "rede": "Galeria dos Pães", "vertical": "Padarias", "regiao": "Oeste", "fluxo": 5000, "tier": "Tier 1", "score": 15.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "reuniao", "perdido": false, "obs": "", "id": 86}, {"nome": "Pinheiros", "rede": "Padaria Bracarense", "vertical": "Padarias", "regiao": "Oeste", "fluxo": 4200, "tier": "Tier 1", "score": 12.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "contatado", "perdido": false, "obs": "", "id": 87}, {"nome": "Santana", "rede": "Dona Deola", "vertical": "Padarias", "regiao": "Norte", "fluxo": 3800, "tier": "Tier 1", "score": 11.4, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "contatado", "perdido": false, "obs": "", "id": 88}, {"nome": "Centro", "rede": "Padaria Santa Tereza", "vertical": "Padarias", "regiao": "Centro", "fluxo": 3500, "tier": "Tier 1", "score": 10.5, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "contatado", "perdido": false, "obs": "", "id": 89}, {"nome": "Tatuapé", "rede": "Padaria Brasileira (rede)", "vertical": "Padarias", "regiao": "Leste", "fluxo": 3200, "tier": "Tier 1", "score": 6.4, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 90}, {"nome": "Mooca", "rede": "Di Cunto", "vertical": "Padarias", "regiao": "Leste", "fluxo": 3000, "tier": "Tier 1", "score": 9.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "contatado", "perdido": false, "obs": "", "id": 91}, {"nome": "Lapa", "rede": "Padaria São Domingos", "vertical": "Padarias", "regiao": "Oeste", "fluxo": 2800, "tier": "Tier 1", "score": 8.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "contatado", "perdido": false, "obs": "", "id": 92}, {"nome": "Itaim Bibi", "rede": "Benjamin a Padaria", "vertical": "Padarias", "regiao": "Oeste", "fluxo": 2600, "tier": "Tier 1", "score": 7.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "contatado", "perdido": false, "obs": "", "id": 93}, {"nome": "Liberdade", "rede": "Padaria Real", "vertical": "Padarias", "regiao": "Centro", "fluxo": 2400, "tier": "Tier 2", "score": 4.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 94}, {"nome": "Vila Mariana", "rede": "Padaria Suíça", "vertical": "Padarias", "regiao": "Sul", "fluxo": 2200, "tier": "Tier 2", "score": 6.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 95}, {"nome": "Penha", "rede": "Cepam (rede)", "vertical": "Padarias", "regiao": "Leste", "fluxo": 2000, "tier": "Tier 2", "score": 4.0, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 96}, {"nome": "Vila Prudente", "rede": "Padaria do Zé (indep.)", "vertical": "Padarias", "regiao": "Leste", "fluxo": 1800, "tier": "Tier 2", "score": 3.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 97}, {"nome": "Sumaré", "rede": "Padaria Santa Marcelina", "vertical": "Padarias", "regiao": "Oeste", "fluxo": 1700, "tier": "Tier 2", "score": 3.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 98}, {"nome": "Moema", "rede": "Padaria D'Or (rede)", "vertical": "Padarias", "regiao": "Sul", "fluxo": 1600, "tier": "Tier 2", "score": 3.2, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 99}, {"nome": "Santo Amaro", "rede": "Padaria de bairro (indep.)", "vertical": "Padarias", "regiao": "Sul", "fluxo": 1500, "tier": "Tier 2", "score": 3.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 100}, {"nome": "Aricanduva", "rede": "Padaria + conveniência (indep.)", "vertical": "Padarias", "regiao": "Leste", "fluxo": 1400, "tier": "Tier 2", "score": 2.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 101}, {"nome": "Itaquera", "rede": "Padaria (rede assoc.)", "vertical": "Padarias", "regiao": "Leste", "fluxo": 1300, "tier": "Tier 2", "score": 2.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 102}, {"nome": "Brás", "rede": "Padaria de esquina (indep.)", "vertical": "Padarias", "regiao": "Leste", "fluxo": 1200, "tier": "Tier 2", "score": 3.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 103}, {"nome": "Campo Belo", "rede": "Padaria de bairro (indep.)", "vertical": "Padarias", "regiao": "Sul", "fluxo": 1100, "tier": "Tier 2", "score": 2.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 104}, {"nome": "Cidade Ademar", "rede": "Padaria (indep.)", "vertical": "Padarias", "regiao": "Sul", "fluxo": 1000, "tier": "Tier 2", "score": 2.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 105}, {"nome": "Capão Redondo", "rede": "Padaria (indep.)", "vertical": "Padarias", "regiao": "Sul", "fluxo": 950, "tier": "Tier 3", "score": 0.9, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 106}, {"nome": "Guaianases", "rede": "Padaria (rede assoc.)", "vertical": "Padarias", "regiao": "Leste", "fluxo": 900, "tier": "Tier 3", "score": 0.9, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 107}, {"nome": "Brasilândia", "rede": "Padaria (indep.)", "vertical": "Padarias", "regiao": "Norte", "fluxo": 850, "tier": "Tier 3", "score": 1.7, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 108}, {"nome": "Sapopemba", "rede": "Padaria (indep.)", "vertical": "Padarias", "regiao": "Leste", "fluxo": 800, "tier": "Tier 3", "score": 1.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 109}, {"nome": "Cidade Tiradentes", "rede": "Padaria (indep.)", "vertical": "Padarias", "regiao": "Leste", "fluxo": 750, "tier": "Tier 3", "score": 0.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 110}, {"nome": "Pirituba", "rede": "Padaria (indep.)", "vertical": "Padarias", "regiao": "Oeste", "fluxo": 700, "tier": "Tier 3", "score": 1.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 111}, {"nome": "Itaim Paulista", "rede": "Padaria (indep.)", "vertical": "Padarias", "regiao": "Leste", "fluxo": 680, "tier": "Tier 3", "score": 0.7, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 112}, {"nome": "Parelheiros", "rede": "Padaria (indep.)", "vertical": "Padarias", "regiao": "Sul", "fluxo": 640, "tier": "Tier 3", "score": 0.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 113}, {"nome": "Grajaú", "rede": "Padaria (indep.)", "vertical": "Padarias", "regiao": "Sul", "fluxo": 600, "tier": "Tier 3", "score": 0.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 114}, {"nome": "Av. Paulista", "rede": "Smart Fit", "vertical": "Academias", "regiao": "Paulista", "fluxo": 1500, "tier": "Tier 1", "score": 4.5, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 115}, {"nome": "Av. Faria Lima", "rede": "Bio Ritmo", "vertical": "Academias", "regiao": "Oeste", "fluxo": 1200, "tier": "Tier 1", "score": 3.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 116}, {"nome": "Shopping JK Iguatemi", "rede": "Bodytech", "vertical": "Academias", "regiao": "Oeste", "fluxo": 1000, "tier": "Tier 1", "score": 3.0, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 117}, {"nome": "Terminal Itaquera", "rede": "Smart Fit", "vertical": "Academias", "regiao": "Leste", "fluxo": 950, "tier": "Tier 1", "score": 2.8, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 118}, {"nome": "Santana", "rede": "Selfit", "vertical": "Academias", "regiao": "Norte", "fluxo": 850, "tier": "Tier 1", "score": 2.5, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 119}, {"nome": "Tatuapé", "rede": "Bluefit", "vertical": "Academias", "regiao": "Leste", "fluxo": 800, "tier": "Tier 1", "score": 2.4, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 120}, {"nome": "Shopping Morumbi", "rede": "Cia Athletica", "vertical": "Academias", "regiao": "Sul", "fluxo": 750, "tier": "Tier 1", "score": 2.2, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 121}, {"nome": "Lapa", "rede": "Smart Fit", "vertical": "Academias", "regiao": "Oeste", "fluxo": 700, "tier": "Tier 1", "score": 2.1, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 122}, {"nome": "Moema", "rede": "Academia de bairro forte", "vertical": "Academias", "regiao": "Sul", "fluxo": 650, "tier": "Tier 1", "score": 2.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 123}, {"nome": "Vila Mariana", "rede": "Studio CrossFit (box)", "vertical": "Academias", "regiao": "Sul", "fluxo": 600, "tier": "Tier 1", "score": 1.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 124}, {"nome": "Pinheiros", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Oeste", "fluxo": 550, "tier": "Tier 2", "score": 1.7, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 125}, {"nome": "Liberdade", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Centro", "fluxo": 500, "tier": "Tier 2", "score": 1.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 126}, {"nome": "Brás", "rede": "Academia + crossfit", "vertical": "Academias", "regiao": "Leste", "fluxo": 460, "tier": "Tier 2", "score": 1.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 127}, {"nome": "Santo Amaro", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Sul", "fluxo": 420, "tier": "Tier 2", "score": 0.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 128}, {"nome": "Sumaré", "rede": "Studio pilates / funcional", "vertical": "Academias", "regiao": "Oeste", "fluxo": 380, "tier": "Tier 2", "score": 1.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 129}, {"nome": "Penha", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Leste", "fluxo": 340, "tier": "Tier 2", "score": 0.7, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 130}, {"nome": "Itaquera", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Leste", "fluxo": 300, "tier": "Tier 2", "score": 0.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 131}, {"nome": "Mooca", "rede": "Academia de bairro", "vertical": "Academias", "regiao": "Leste", "fluxo": 280, "tier": "Tier 2", "score": 0.6, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 132}, {"nome": "Vila Madalena", "rede": "Box CrossFit (indep.)", "vertical": "Academias", "regiao": "Oeste", "fluxo": 250, "tier": "Tier 2", "score": 0.8, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 133}, {"nome": "Campo Belo", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Sul", "fluxo": 220, "tier": "Tier 2", "score": 0.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 134}, {"nome": "Cidade Ademar", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Sul", "fluxo": 190, "tier": "Tier 3", "score": 0.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 135}, {"nome": "Capão Redondo", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Sul", "fluxo": 170, "tier": "Tier 3", "score": 0.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 136}, {"nome": "Guaianases", "rede": "Studio (indep.)", "vertical": "Academias", "regiao": "Leste", "fluxo": 150, "tier": "Tier 3", "score": 0.3, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 137}, {"nome": "Brasilândia", "rede": "Academia (rede)", "vertical": "Academias", "regiao": "Norte", "fluxo": 140, "tier": "Tier 3", "score": 0.3, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 138}, {"nome": "Sapopemba", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Leste", "fluxo": 120, "tier": "Tier 3", "score": 0.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 139}, {"nome": "Cidade Tiradentes", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Leste", "fluxo": 105, "tier": "Tier 3", "score": 0.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 140}, {"nome": "Pirituba", "rede": "Studio (indep.)", "vertical": "Academias", "regiao": "Oeste", "fluxo": 90, "tier": "Tier 3", "score": 0.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 141}, {"nome": "Itaim Paulista", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Leste", "fluxo": 80, "tier": "Tier 3", "score": 0.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 142}, {"nome": "Parelheiros", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Sul", "fluxo": 70, "tier": "Tier 3", "score": 0.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 143}, {"nome": "Grajaú", "rede": "Academia (indep.)", "vertical": "Academias", "regiao": "Sul", "fluxo": 60, "tier": "Tier 3", "score": 0.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 144}, {"nome": "Shopping Iguatemi", "rede": "Jacques Janine (rede)", "vertical": "Salões de beleza", "regiao": "Oeste", "fluxo": 260, "tier": "Tier 1", "score": 0.8, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 145}, {"nome": "Shopping JK Iguatemi", "rede": "Studio W", "vertical": "Salões de beleza", "regiao": "Oeste", "fluxo": 240, "tier": "Tier 1", "score": 0.7, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 146}, {"nome": "Av. Paulista", "rede": "Marco Aldany (franquia)", "vertical": "Salões de beleza", "regiao": "Paulista", "fluxo": 220, "tier": "Tier 1", "score": 0.7, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 147}, {"nome": "Shopping Morumbi", "rede": "Werner Coiffeur", "vertical": "Salões de beleza", "regiao": "Sul", "fluxo": 200, "tier": "Tier 1", "score": 0.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 148}, {"nome": "Av. Faria Lima", "rede": "Barbearia Corleone (franquia)", "vertical": "Salões de beleza", "regiao": "Oeste", "fluxo": 190, "tier": "Tier 1", "score": 0.6, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 149}, {"nome": "Shopping Aricanduva", "rede": "Espaço Beleza (rede)", "vertical": "Salões de beleza", "regiao": "Leste", "fluxo": 180, "tier": "Tier 1", "score": 0.5, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 150}, {"nome": "Tatuapé", "rede": "Salão unissex grande", "vertical": "Salões de beleza", "regiao": "Leste", "fluxo": 170, "tier": "Tier 1", "score": 0.5, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 151}, {"nome": "Santana", "rede": "Barbearia VIP (franquia)", "vertical": "Salões de beleza", "regiao": "Norte", "fluxo": 160, "tier": "Tier 1", "score": 0.5, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 152}, {"nome": "Pinheiros", "rede": "Esmalteria Nacional (franquia)", "vertical": "Salões de beleza", "regiao": "Oeste", "fluxo": 150, "tier": "Tier 1", "score": 0.3, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 153}, {"nome": "Moema", "rede": "Salão de bairro forte", "vertical": "Salões de beleza", "regiao": "Sul", "fluxo": 140, "tier": "Tier 2", "score": 0.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 154}, {"nome": "Vila Mariana", "rede": "Barbearia de rua", "vertical": "Salões de beleza", "regiao": "Sul", "fluxo": 130, "tier": "Tier 2", "score": 0.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 155}, {"nome": "Lapa", "rede": "Salão + estética", "vertical": "Salões de beleza", "regiao": "Oeste", "fluxo": 120, "tier": "Tier 2", "score": 0.4, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 156}, {"nome": "Liberdade", "rede": "Cabeleireiro de bairro", "vertical": "Salões de beleza", "regiao": "Centro", "fluxo": 110, "tier": "Tier 2", "score": 0.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 157}, {"nome": "Brás", "rede": "Barbearia (indep.)", "vertical": "Salões de beleza", "regiao": "Leste", "fluxo": 100, "tier": "Tier 2", "score": 0.3, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 158}, {"nome": "Santo Amaro", "rede": "Salão (indep.)", "vertical": "Salões de beleza", "regiao": "Sul", "fluxo": 95, "tier": "Tier 2", "score": 0.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 159}, {"nome": "Penha", "rede": "Esmalteria (indep.)", "vertical": "Salões de beleza", "regiao": "Leste", "fluxo": 90, "tier": "Tier 2", "score": 0.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 160}, {"nome": "Itaquera", "rede": "Salão unissex", "vertical": "Salões de beleza", "regiao": "Leste", "fluxo": 85, "tier": "Tier 2", "score": 0.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 161}, {"nome": "Mooca", "rede": "Barbearia (indep.)", "vertical": "Salões de beleza", "regiao": "Leste", "fluxo": 80, "tier": "Tier 2", "score": 0.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 162}, {"nome": "Sumaré", "rede": "Salão (indep.)", "vertical": "Salões de beleza", "regiao": "Oeste", "fluxo": 75, "tier": "Tier 2", "score": 0.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 163}, {"nome": "Vila Madalena", "rede": "Studio de beleza (indep.)", "vertical": "Salões de beleza", "regiao": "Oeste", "fluxo": 70, "tier": "Tier 2", "score": 0.2, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 164}, {"nome": "Campo Belo", "rede": "Salão de bairro", "vertical": "Salões de beleza", "regiao": "Sul", "fluxo": 65, "tier": "Tier 2", "score": 0.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 165}, {"nome": "Cidade Ademar", "rede": "Barbearia (indep.)", "vertical": "Salões de beleza", "regiao": "Sul", "fluxo": 58, "tier": "Tier 3", "score": 0.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 166}, {"nome": "Capão Redondo", "rede": "Salão (indep.)", "vertical": "Salões de beleza", "regiao": "Sul", "fluxo": 52, "tier": "Tier 3", "score": 0.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 167}, {"nome": "Guaianases", "rede": "Salão + barbearia (rede)", "vertical": "Salões de beleza", "regiao": "Leste", "fluxo": 48, "tier": "Tier 3", "score": 0.1, "motor": "B · Canal", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 168}, {"nome": "Brasilândia", "rede": "Salão (indep.)", "vertical": "Salões de beleza", "regiao": "Norte", "fluxo": 44, "tier": "Tier 3", "score": 0.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 169}, {"nome": "Sapopemba", "rede": "Barbearia (indep.)", "vertical": "Salões de beleza", "regiao": "Leste", "fluxo": 40, "tier": "Tier 3", "score": 0.1, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 170}, {"nome": "Cidade Tiradentes", "rede": "Salão (indep.)", "vertical": "Salões de beleza", "regiao": "Leste", "fluxo": 36, "tier": "Tier 3", "score": 0.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 171}, {"nome": "Pirituba", "rede": "Esmalteria (indep.)", "vertical": "Salões de beleza", "regiao": "Oeste", "fluxo": 32, "tier": "Tier 3", "score": 0.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 172}, {"nome": "Parelheiros", "rede": "Salão (indep.)", "vertical": "Salões de beleza", "regiao": "Sul", "fluxo": 28, "tier": "Tier 3", "score": 0.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 173}, {"nome": "Grajaú", "rede": "Barbearia (indep.)", "vertical": "Salões de beleza", "regiao": "Sul", "fluxo": 24, "tier": "Tier 3", "score": 0.0, "motor": "A · Direto", "fonte": "Growth", "prioridade": "Baixa", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 174}, {"nome": "Atacadão Cangaíba", "rede": "Atacadão", "vertical": "Supermercados", "regiao": "Leste", "fluxo": 9000, "tier": "Tier 1", "score": 27.0, "motor": "A · Direto", "fonte": "Marketing", "prioridade": "Alta", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 175}, {"nome": "Nissei Tatuapé", "rede": "Nissei", "vertical": "Farmácias", "regiao": "Leste", "fluxo": 5200, "tier": "Tier 1", "score": 15.6, "motor": "A · Direto", "fonte": "Marketing", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 176}, {"nome": "Giraffas Faria Lima", "rede": "Giraffas", "vertical": "Food service", "regiao": "Oeste", "fluxo": 1800, "tier": "Tier 1", "score": 5.4, "motor": "A · Direto", "fonte": "Marketing", "prioridade": "Alta", "sdr": "Carla Dias", "stage": "novo", "perdido": false, "obs": "", "id": 177}, {"nome": "Smart Fit Tucuruvi", "rede": "Smart Fit", "vertical": "Academias", "regiao": "Norte", "fluxo": 680, "tier": "Tier 1", "score": 2.0, "motor": "A · Direto", "fonte": "Marketing", "prioridade": "Alta", "sdr": "Diego Rocha", "stage": "novo", "perdido": false, "obs": "", "id": 178}, {"nome": "Padaria Bela Vista", "rede": "Independente", "vertical": "Padarias", "regiao": "Centro", "fluxo": 2300, "tier": "Tier 2", "score": 6.9, "motor": "A · Direto", "fonte": "Marketing", "prioridade": "Média", "sdr": "Ana Souza", "stage": "novo", "perdido": false, "obs": "", "id": 179}, {"nome": "Espaçolaser Morumbi", "rede": "Espaçolaser", "vertical": "Salões de beleza", "regiao": "Sul", "fluxo": 170, "tier": "Tier 1", "score": 0.5, "motor": "A · Direto", "fonte": "Marketing", "prioridade": "Alta", "sdr": "Bruno Lima", "stage": "novo", "perdido": false, "obs": "", "id": 180}], "metas": {"annual": {"Leads": 5802, "Contato": 3958, "Reunião": 2253, "Assinatura": 1108, "Ativação": 1000, "Retenção": 918}, "monthly": {"Leads": 484, "Contato": 330, "Reunião": 188, "Assinatura": 92, "Ativação": 83, "Retenção": 76}, "perRepAtiv": 250, "rates": {"Farmácias": [0.7, 0.6, 0.55, 0.9, 0.92], "Supermercados": [0.65, 0.55, 0.45, 0.9, 0.93], "Food service": [0.7, 0.5, 0.4, 0.92, 0.88], "Padarias": [0.7, 0.6, 0.5, 0.9, 0.9], "Academias": [0.7, 0.6, 0.5, 0.92, 0.93], "Salões de beleza": [0.7, 0.6, 0.5, 0.9, 0.92]}, "atMeta": {"Farmácias": 450, "Supermercados": 300, "Food service": 100, "Padarias": 80, "Academias": 40, "Salões de beleza": 30}}, "reps": ["Ana Souza", "Bruno Lima", "Carla Dias", "Diego Rocha"], "verts": ["Farmácias", "Supermercados", "Food service", "Padarias", "Academias", "Salões de beleza"], "thr": {"Farmácias": [5000, 2500], "Supermercados": [8000, 3000], "Food service": [1500, 700], "Padarias": [2500, 1000], "Academias": [600, 200], "Salões de beleza": [150, 60]}};
+const STAGES = [
+ {k:'novo',label:'Lead novo',color:'#94a3b8'},
+ {k:'contatado',label:'Contatado',color:'#2CAFE0'},
+ {k:'reuniao',label:'Reunião',color:'#6366f1'},
+ {k:'assinado',label:'Assinado',color:'#f59e0b'},
+ {k:'ativo',label:'Ativo',color:'#17C07B'},
+ {k:'retido',label:'Retido',color:'#0E8F5C'},
+];
+const SI = {}; STAGES.forEach((s,i)=>SI[s.k]=i);
+const FUNNEL = [['Leads',0],['Contato',1],['Reunião',2],['Assinatura',3],['Ativação',4],['Retenção',5]];
+const FONTES = ['Marketing','Growth','Outbound','Indicação','Evento'];
+const PRIOS = ['Alta','Média','Baixa'];
+let leads = DATA.leads.map(l=>Object.assign({},l));
+let nextId = Math.max.apply(null, leads.map(l=>l.id))+1;
+const M = DATA.metas, REPS = DATA.reps, VERTS = DATA.verts, THR = DATA.thr;
+let state = {view:'painel', f:{sdr:'',vertical:'',fonte:'',q:''}, edit:null, adding:false};
+
+// ===== Login / backend (Supabase). Vazio = modo local sem login. =====
+const SUPABASE_URL = "https://dfhscrfwujoiufhrhuez.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_AS9WaZhQIhXXOnpcRQR3mA_LcLZd6QR";
+const REMOTE = !!(SUPABASE_URL && SUPABASE_ANON_KEY && SUPABASE_URL.indexOf('http')===0);
+let sb=null, session=null, loginErr='', loginInfo='', loginMode='in';
+let isAdmin=false, newRepName='';
+
+function tierOf(vt,fx){const t=THR[vt]; return fx>=t[0]?'Tier 1':(fx>=t[1]?'Tier 2':'Tier 3');}
+function esc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function reached(idx,arr){arr=arr||leads; return arr.filter(l=>SI[l.stage]>=idx && !(l.perdido && SI[l.stage]<idx)).length;}
+function cnt(idx,arr){arr=arr||leads; return arr.filter(l=>SI[l.stage]>=idx).length;}
+function filtered(){return leads.filter(l=>{const f=state.f;
+  if(f.sdr && l.sdr!==f.sdr)return false;
+  if(f.vertical && l.vertical!==f.vertical)return false;
+  if(f.fonte && l.fonte!==f.fonte)return false;
+  if(f.q){const q=f.q.toLowerCase(); if(!((l.nome+' '+l.rede+' '+l.regiao).toLowerCase().includes(q)))return false;}
+  return true;});}
+
+// ---------- actions ----------
+function setView(v){state.view=v; render();}
+function setF(k,v){state.f[k]=v; render();}
+function clearF(){state.f={sdr:'',vertical:'',fonte:'',q:''}; render();}
+function move(id,d){const l=leads.find(x=>x.id===id); if(!l)return; let i=Math.max(0,Math.min(STAGES.length-1,SI[l.stage]+d)); const patch={stage:STAGES[i].k}; if(d>0)patch.perdido=false; persist(id,patch);}
+function setStage(id,k){persist(id,{stage:k});}
+function togglePerdido(id){const l=leads.find(x=>x.id===id); if(l)persist(id,{perdido:!l.perdido});}
+function setField(id,f,v){const l=leads.find(x=>x.id===id); if(!l)return; let patch={}; if(f==='fluxo'){v=Number(v)||0; patch={fluxo:v,tier:tierOf(l.vertical,v),score:Math.round(v/1000*3*10)/10};} else {patch[f]=v; if(f==='vertical')patch.tier=tierOf(v,l.fluxo);} persist(id,patch);}
+function delLead(id){if(!confirm('Remover este lead?'))return; leads=leads.filter(x=>x.id!==id); state.edit=null; render(); if(REMOTE&&sb)sb.from('leads').delete().eq('id',id).then(()=>{});}
+function persist(id,patch){const l=leads.find(x=>x.id===id); if(l)Object.assign(l,patch); render(); if(REMOTE&&sb){sb.from('leads').update(patch).eq('id',id).then(({error})=>{if(error)console.warn('update',error.message);});}}
+function openEdit(id){state.edit=id; render();}
+function closeModal(){state.edit=null; state.adding=false; render();}
+function openAdd(){state.adding=true; render();}
+function addLead(){
+  const g=id=>document.getElementById(id).value;
+  const vt=g('a_vert'); const fx=Number(g('a_fluxo'))||0;
+  const o={nome:g('a_nome')||'(sem nome)',rede:g('a_rede')||'Independente',vertical:vt,
+    regiao:g('a_reg')||'',fluxo:fx,tier:tierOf(vt,fx),score:Math.round(fx/1000*3*10)/10,
+    motor:g('a_motor'),fonte:g('a_fonte'),prioridade:g('a_prio'),sdr:g('a_sdr'),stage:'novo',perdido:false,obs:''};
+  state.adding=false;
+  if(REMOTE&&sb){ sb.from('leads').insert(o).select().then(({data,error})=>{ if(!error&&data&&data[0])leads.unshift(data[0]); render(); }); }
+  else { o.id=nextId++; leads.unshift(o); render(); }
+}
+function exportJSON(){dl('wideads_pipeline.json', JSON.stringify(leads,null,2),'application/json');}
+function exportCSV(){
+  const cols=['id','nome','rede','vertical','regiao','fluxo','tier','score','motor','fonte','prioridade','sdr','stage','perdido','obs'];
+  let out=cols.join(';')+'\n';
+  leads.forEach(l=>{out+=cols.map(c=>('"'+String(l[c]==null?'':l[c]).replace(/"/g,'""')+'"')).join(';')+'\n';});
+  dl('wideads_pipeline.csv', out, 'text/csv');
+}
+function dl(name,content,type){const b=new Blob([content],{type:type}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=name; a.click(); URL.revokeObjectURL(u);}
+function importJSON(ev){const f=ev.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{try{const d=JSON.parse(r.result); if(Array.isArray(d)){leads=d.map(x=>Object.assign({},x)); nextId=Math.max.apply(null,leads.map(l=>l.id))+1; render();}}catch(e){alert('Arquivo inválido');}}; r.readAsText(f);}
+
+// ---------- render ----------
+function kpiChips(){
+  const ativ=cnt(4), meta=M.annual['Ativação'];
+  return `<div class="chips">
+    <div class="chip"><b>${leads.length}</b><span>leads</span></div>
+    <div class="chip"><b>${cnt(1)}</b><span>contatos</span></div>
+    <div class="chip"><b>${cnt(3)}</b><span>assinaturas</span></div>
+    <div class="chip"><b style="color:#17C07B">${ativ}</b><span>ativações</span></div>
+    <div class="chip"><b>${meta}</b><span>meta ativação</span></div>
+  </div>`;
+}
+function tierBadge(t){const c=t==='Tier 1'?'#17C07B':(t==='Tier 2'?'#2CAFE0':'#94a3b8'); return `<span class="badge" style="background:${c}1a;color:${c};border:1px solid ${c}55">${t}</span>`;}
+function selOpts(arr,val){return arr.map(o=>`<option ${o===val?'selected':''}>${esc(o)}</option>`).join('');}
+
+function header(){
+  const tabs=[['painel','Painel'],['pipeline','Pipeline'],['tabela','Leads'],['sdr','Por SDR']];
+  if(isAdmin) tabs.push(['admin','Admin']);
+  const user = (REMOTE && session) ? `<span class="user">${esc(session.user.email)}</span><button class="btn ghost" onclick="doLogout()">Sair</button>` : '';
+  const banner = !REMOTE ? `<div class="banner">Modo local (sem login). Para ativar contas e dados compartilhados, configure o Supabase (veja o guia).</div>` : '';
+  const seed = (REMOTE && session && leads.length===0) ? `<div class="banner seed">Base vazia. <button class="btn sm" onclick="seedBase()">Popular com os 174 PDVs do GTM</button></div>` : '';
+  return `<div class="hdr">
+    <div class="hdr-top">
+      <div class="brand">WideAds <span>· Operação BDR/SDR</span></div>
+      <div class="acts">
+        ${user}
+        <button class="btn ghost" onclick="exportCSV()">CSV</button>
+        <button class="btn ghost" onclick="exportJSON()">Exportar</button>
+        <label class="btn ghost">Importar<input type="file" accept="application/json" onchange="importJSON(event)" style="display:none"></label>
+        <button class="btn" onclick="openAdd()">+ Lead</button>
+      </div>
+    </div>
+    ${kpiChips()}
+    <div class="tabs">${tabs.map(t=>`<button class="tab ${state.view===t[0]?'on':''}" onclick="setView('${t[0]}')">${t[1]}</button>`).join('')}</div>
+  </div>${banner}${seed}`;
+}
+function filterbar(){
+  const f=state.f;
+  return `<div class="filters">
+    <input class="inp" placeholder="Buscar PDV, rede, região..." value="${esc(f.q)}" oninput="setF('q',this.value)">
+    <select class="inp" onchange="setF('sdr',this.value)"><option value="">SDR: todos</option>${selOpts(REPS,f.sdr)}</select>
+    <select class="inp" onchange="setF('vertical',this.value)"><option value="">Vertical: todas</option>${selOpts(VERTS,f.vertical)}</select>
+    <select class="inp" onchange="setF('fonte',this.value)"><option value="">Fonte: todas</option>${selOpts(FONTES,f.fonte)}</select>
+    ${(f.q||f.sdr||f.vertical||f.fonte)?`<button class="btn ghost sm" onclick="clearF()">limpar</button>`:''}
+  </div>`;
+}
+
+function renderPainel(){
+  let h=`<div class="grid2">`;
+  // funnel realizado vs meta
+  h+=`<div class="card"><div class="card-h">Funil de realização · vs meta Ano 1</div><div class="funnel">`;
+  const maxv=leads.length||1;
+  FUNNEL.forEach(([name,idx])=>{
+    const r = idx===0?leads.length:cnt(idx);
+    const meta=M.annual[name], mm=M.monthly[name];
+    const w=Math.max(4, Math.round(r/maxv*100));
+    const pct=meta?Math.round(r/meta*100):0;
+    h+=`<div class="frow"><div class="flabel">${name}</div>
+      <div class="fbarwrap"><div class="fbar" style="width:${w}%"></div><span class="fval">${r}</span></div>
+      <div class="fmeta">meta ${meta} · mês ${mm} · <b style="color:${pct>=100?'#17C07B':(pct>=50?'#B7791F':'#b42318')}">${pct}%</b></div></div>`;
+  });
+  h+=`</div></div>`;
+  // conversões
+  h+=`<div class="card"><div class="card-h">Taxas de conversão (realizada vs meta)</div><table class="tbl"><tr><th>Passagem</th><th>Real.</th><th>Meta</th></tr>`;
+  const convs=[['Contato / Leads',1,0],['Reunião / Contato',2,1],['Assinatura / Reunião',3,2],['Ativação / Assinatura',4,3],['Retenção / Ativação',5,4]];
+  const A=M.annual, names=['Leads','Contato','Reunião','Assinatura','Ativação','Retenção'];
+  convs.forEach(([lb,a,b])=>{
+    const ra=a===0?leads.length:cnt(a), rb=b===0?leads.length:cnt(b);
+    const real=rb?ra/rb:0; const meta=A[names[b]]?A[names[a]]/A[names[b]]:0;
+    h+=`<tr><td>${lb}</td><td><b>${(real*100).toFixed(0)}%</b></td><td class="mut">${(meta*100).toFixed(0)}%</td></tr>`;
+  });
+  h+=`</table></div>`;
+  // leads por fonte
+  h+=`<div class="card"><div class="card-h">Leads por fonte</div><table class="tbl"><tr><th>Fonte</th><th>Leads</th><th>%</th></tr>`;
+  FONTES.forEach(fn=>{const n=leads.filter(l=>l.fonte===fn).length; if(n===0&&fn!=='Marketing'&&fn!=='Growth')return; h+=`<tr><td>${fn}</td><td><b>${n}</b></td><td class="mut">${leads.length?Math.round(n/leads.length*100):0}%</td></tr>`;});
+  h+=`</table></div>`;
+  // por SDR resumo
+  h+=`<div class="card"><div class="card-h">Resumo por SDR</div><table class="tbl"><tr><th>SDR</th><th>Leads</th><th>Cont.</th><th>Reun.</th><th>Assin.</th><th>Ativ.</th></tr>`;
+  REPS.forEach(rep=>{const a=leads.filter(l=>l.sdr===rep); h+=`<tr><td>${rep}</td><td>${a.length}</td><td>${cnt(1,a)}</td><td>${cnt(2,a)}</td><td>${cnt(3,a)}</td><td><b style="color:#17C07B">${cnt(4,a)}</b></td></tr>`;});
+  h+=`</table></div>`;
+  h+=`</div>`;
+  return h;
+}
+
+function card(l){
+  const st=STAGES[SI[l.stage]];
+  const pc=l.prioridade==='Alta'?'#b42318':(l.prioridade==='Média'?'#B7791F':'#94a3b8');
+  return `<div class="lead ${l.perdido?'lost':''}" onclick="openEdit(${l.id})">
+    <div class="lead-top"><div class="lead-name">${esc(l.nome)}</div>${tierBadge(l.tier)}</div>
+    <div class="lead-sub">${esc(l.rede)} · ${esc(l.vertical)}</div>
+    <div class="lead-meta"><span class="dot" style="background:${pc}"></span>${l.prioridade} · ${esc(l.sdr)} · score ${l.score}</div>
+    <div class="lead-actions" onclick="event.stopPropagation()">
+      <button class="mini" onclick="move(${l.id},-1)" title="voltar">◀</button>
+      <button class="mini" onclick="togglePerdido(${l.id})" title="perdido">${l.perdido?'↺':'✕'}</button>
+      <button class="mini go" onclick="move(${l.id},1)" title="avançar">▶</button>
+    </div></div>`;
+}
+function renderPipeline(){
+  const arr=filtered();
+  let h=`<div class="board">`;
+  STAGES.forEach((s,i)=>{
+    const items=arr.filter(l=>l.stage===s.k);
+    h+=`<div class="col"><div class="col-h" style="border-top:3px solid ${s.color}">${s.label}<span class="count">${items.length}</span></div><div class="col-body">`;
+    h+=items.map(card).join('')||`<div class="empty">vazio</div>`;
+    h+=`</div></div>`;
+  });
+  h+=`</div>`;
+  return h;
+}
+
+function renderTabela(){
+  const arr=filtered();
+  let h=`<div class="card nopad"><div class="tablewrap"><table class="data"><thead><tr>
+    <th>PDV</th><th>Rede</th><th>Vertical</th><th>Região</th><th>Fluxo</th><th>Tier</th><th>Score</th><th>Fonte</th><th>SDR</th><th>Prior.</th><th>Estágio</th><th></th></tr></thead><tbody>`;
+  arr.forEach(l=>{
+    h+=`<tr class="${l.perdido?'lost':''}"><td class="b">${esc(l.nome)}</td><td>${esc(l.rede)}</td><td>${esc(l.vertical)}</td><td>${esc(l.regiao)}</td><td>${l.fluxo}</td><td>${tierBadge(l.tier)}</td><td>${l.score}</td>
+      <td>${esc(l.fonte)}</td>
+      <td><select class="cell" onchange="setField(${l.id},'sdr',this.value)">${selOpts(REPS,l.sdr)}</select></td>
+      <td><select class="cell" onchange="setField(${l.id},'prioridade',this.value)">${selOpts(PRIOS,l.prioridade)}</select></td>
+      <td><select class="cell stage" onchange="setStage(${l.id},this.value)">${STAGES.map(s=>`<option value="${s.k}" ${l.stage===s.k?'selected':''}>${s.label}</option>`).join('')}</select></td>
+      <td><button class="mini" onclick="openEdit(${l.id})">⋯</button></td></tr>`;
+  });
+  h+=`</tbody></table></div></div><div class="hint">${arr.length} de ${leads.length} leads · edite SDR, prioridade e estágio direto na tabela</div>`;
+  return h;
+}
+
+function renderAdmin(){
+  if(!isAdmin) return '<div class="card">Acesso restrito.</div>';
+  let h=`<div class="card">
+    <div class="card-h">SDR / BDR da equipe</div>
+    <div class="form" style="grid-template-columns:1fr auto">
+      <input class="inp" id="a_newrep" placeholder="Nome do novo SDR/BDR" value="${esc(newRepName)}" oninput="newRepName=this.value" onkeydown="if(event.key==='Enter')addRep()">
+      <button class="btn" onclick="addRep()">+ Adicionar</button>
+    </div>
+    <table class="tbl" style="margin-top:14px"><tr><th>Nome</th><th></th></tr>
+    ${REPS.map(r=>`<tr><td>${esc(r)}</td><td style="text-align:right"><button class="btn ghost sm" onclick="removeRep('${esc(r).replace(/'/g,"\\'")}')">Remover</button></td></tr>`).join('')}
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-h">Metas anuais</div>
+    <div class="form">
+      ${FUNNEL.map(([label])=>`<label class="fld"><span>${label}</span><input class="inp" type="number" data-meta="annual.${label}" value="${M.annual[label]}"></label>`).join('')}
+    </div>
+    <div class="card-h" style="margin-top:14px">Metas mensais</div>
+    <div class="form">
+      ${FUNNEL.map(([label])=>`<label class="fld"><span>${label}</span><input class="inp" type="number" data-meta="monthly.${label}" value="${M.monthly[label]}"></label>`).join('')}
+    </div>
+    <div class="card-h" style="margin-top:14px">Meta de ativação por SDR/BDR</div>
+    <div class="form">
+      <label class="fld"><span>Ativações por rep.</span><input class="inp" type="number" data-meta="perRepAtiv" value="${M.perRepAtiv}"></label>
+    </div>
+    ${loginErr?`<div class="loginerr" style="margin-top:10px">${esc(loginErr)}</div>`:''}
+    ${loginInfo?`<div class="logininfo" style="margin-top:10px">${esc(loginInfo)}</div>`:''}
+    <button class="btn lg" style="margin-top:14px" onclick="saveMetas()">Salvar metas</button>
+  </div>`;
+  return h;
+}
+async function addRep(){
+  const name=(newRepName||'').trim();
+  if(!name){return;}
+  if(REPS.includes(name)){ newRepName=''; return render(); }
+  REPS.push(name); newRepName='';
+  await saveSettings();
+  render();
+}
+async function removeRep(name){
+  if(!confirm(`Remover ${name} da lista de SDR/BDR? Leads já atribuídos a ${name} continuam no histórico, mas ele(a) some das listas e filtros.`)) return;
+  const idx=REPS.indexOf(name); if(idx>-1) REPS.splice(idx,1);
+  await saveSettings();
+  render();
+}
+async function saveMetas(){
+  document.querySelectorAll('[data-meta]').forEach(inp=>{
+    const path=inp.getAttribute('data-meta').split('.'); const v=Number(inp.value)||0;
+    if(path.length===1) M[path[0]]=v; else M[path[0]][path[1]]=v;
+  });
+  await saveSettings();
+  loginInfo='Metas salvas.'; loginErr='';
+  render();
+}
+async function saveSettings(){
+  if(!REMOTE || !sb) return;
+  const {error}=await sb.from('settings').update({reps:REPS, metas:M, updated_at:new Date().toISOString()}).eq('id',1);
+  if(error){ loginErr='Erro ao salvar: '+error.message; loginInfo=''; render(); }
+}
+
+function renderSDR(){
+  let h=`<div class="card nopad"><div class="tablewrap"><table class="data"><thead><tr><th>SDR / BDR</th><th>Leads</th><th>Contato</th><th>Reunião</th><th>Assinatura</th><th>Ativação</th><th>Retenção</th><th>Meta ativ.</th><th>% meta</th></tr></thead><tbody>`;
+  let tot=[0,0,0,0,0,0];
+  REPS.forEach(rep=>{
+    const a=leads.filter(l=>l.sdr===rep);
+    const v=[a.length,cnt(1,a),cnt(2,a),cnt(3,a),cnt(4,a),cnt(5,a)];
+    v.forEach((x,i)=>tot[i]+=x);
+    const pct=M.perRepAtiv?Math.round(v[4]/M.perRepAtiv*100):0;
+    h+=`<tr><td class="b">${rep}</td>${v.map(x=>`<td>${x}</td>`).join('')}<td class="mut">${M.perRepAtiv}</td><td><div class="pbar"><div style="width:${Math.min(100,pct)}%"></div></div><span>${pct}%</span></td></tr>`;
+  });
+  const tpct=Math.round(tot[4]/M.annual['Ativação']*100);
+  h+=`<tr class="totrow"><td class="b">Time</td>${tot.map(x=>`<td>${x}</td>`).join('')}<td>${M.annual['Ativação']}</td><td>${tpct}%</td></tr>`;
+  h+=`</tbody></table></div></div>
+   <div class="card"><div class="card-h">Taxas de conversão por SDR</div><table class="tbl"><tr><th>SDR</th><th>Cont/Lead</th><th>Reun/Cont</th><th>Assin/Reun</th><th>Ativ/Assin</th></tr>`;
+  REPS.forEach(rep=>{const a=leads.filter(l=>l.sdr===rep); const c=[a.length,cnt(1,a),cnt(2,a),cnt(3,a),cnt(4,a)];
+    const r=(x,y)=>y?Math.round(x/y*100)+'%':'-';
+    h+=`<tr><td>${rep}</td><td>${r(c[1],c[0])}</td><td>${r(c[2],c[1])}</td><td>${r(c[3],c[2])}</td><td>${r(c[4],c[3])}</td></tr>`;});
+  h+=`</table></div>`;
+  return h;
+}
+
+function modalEdit(){
+  const l=leads.find(x=>x.id===state.edit); if(!l)return '';
+  const field=(lb,f,val)=>`<label class="fld"><span>${lb}</span><input class="inp" value="${esc(val)}" onchange="setField(${l.id},'${f}',this.value)"></label>`;
+  const sel=(lb,f,arr,val)=>`<label class="fld"><span>${lb}</span><select class="inp" onchange="setField(${l.id},'${f}',this.value)">${selOpts(arr,val)}</select></label>`;
+  return `<div class="overlay" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-h">${esc(l.nome)} <button class="x" onclick="closeModal()">✕</button></div>
+    <div class="modal-stage">${STAGES.map(s=>`<button class="sg ${l.stage===s.k?'on':''}" style="--c:${s.color}" onclick="setStage(${l.id},'${s.k}')">${s.label}</button>`).join('')}</div>
+    <div class="form">
+      ${field('Nome do PDV','nome',l.nome)}
+      ${field('Rede / bandeira','rede',l.rede)}
+      ${sel('Vertical','vertical',VERTS,l.vertical)}
+      ${field('Região','regiao',l.regiao)}
+      ${field('Fluxo/dia','fluxo',l.fluxo)}
+      ${sel('Motor','motor',['A · Direto','B · Canal','C · Enterprise'],l.motor)}
+      ${sel('Fonte','fonte',FONTES,l.fonte)}
+      ${sel('SDR / BDR','sdr',REPS,l.sdr)}
+      ${sel('Prioridade','prioridade',PRIOS,l.prioridade)}
+      <label class="fld wide"><span>Próximo passo / obs</span><input class="inp" value="${esc(l.obs)}" onchange="setField(${l.id},'obs',this.value)"></label>
+    </div>
+    <div class="modal-info">Tier ${l.tier} · Score ${l.score} ${l.perdido?'· <b style="color:#b42318">PERDIDO</b>':''}</div>
+    <div class="modal-foot">
+      <button class="btn ghost danger" onclick="delLead(${l.id})">Remover</button>
+      <button class="btn ghost" onclick="togglePerdido(${l.id})">${l.perdido?'Reativar':'Marcar perdido'}</button>
+      <button class="btn" onclick="closeModal()">Fechar</button>
+    </div></div></div>`;
+}
+function modalAdd(){
+  return `<div class="overlay" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-h">Novo lead <button class="x" onclick="closeModal()">✕</button></div>
+    <div class="form">
+      <label class="fld"><span>Nome do PDV</span><input class="inp" id="a_nome"></label>
+      <label class="fld"><span>Rede / bandeira</span><input class="inp" id="a_rede"></label>
+      <label class="fld"><span>Vertical</span><select class="inp" id="a_vert">${selOpts(VERTS,VERTS[0])}</select></label>
+      <label class="fld"><span>Região</span><input class="inp" id="a_reg"></label>
+      <label class="fld"><span>Fluxo/dia</span><input class="inp" id="a_fluxo" type="number" value="0"></label>
+      <label class="fld"><span>Motor</span><select class="inp" id="a_motor">${selOpts(['A · Direto','B · Canal','C · Enterprise'],'A · Direto')}</select></label>
+      <label class="fld"><span>Fonte</span><select class="inp" id="a_fonte">${selOpts(FONTES,'Marketing')}</select></label>
+      <label class="fld"><span>SDR / BDR</span><select class="inp" id="a_sdr">${selOpts(REPS,REPS[0])}</select></label>
+      <label class="fld"><span>Prioridade</span><select class="inp" id="a_prio">${selOpts(PRIOS,'Média')}</select></label>
+    </div>
+    <div class="modal-foot"><button class="btn ghost" onclick="closeModal()">Cancelar</button><button class="btn" onclick="addLead()">Adicionar ao pipeline</button></div>
+  </div></div>`;
+}
+
+function render(){
+  let body='';
+  if(state.view==='painel') body=renderPainel();
+  else if(state.view==='pipeline') body=filterbar()+renderPipeline();
+  else if(state.view==='tabela') body=filterbar()+renderTabela();
+  else if(state.view==='sdr') body=renderSDR();
+  else if(state.view==='admin') body=renderAdmin();
+  let modal=''; if(state.edit) modal=modalEdit(); else if(state.adding) modal=modalAdd();
+  document.getElementById('app').innerHTML = header()+`<div class="body">${body}</div>`+modal;
+}
+
+// ---------- login / backend ----------
+function val(id){const e=document.getElementById(id); return e?e.value:'';}
+function renderLogin(){
+  if(loginMode==='rec'){
+    document.getElementById('app').innerHTML = `<div class="loginwrap"><div class="loginbox">
+      <div class="loginbrand">WideAds</div>
+      <div class="loginsub">Recuperar senha</div>
+      <div class="loginform">
+        <label class="fld"><span>E-mail</span><input class="inp" id="l_email" type="email" autocomplete="username" placeholder="voce@wideads.com" onkeydown="if(event.key==='Enter')doReset()"></label>
+        ${loginErr?`<div class="loginerr">${esc(loginErr)}</div>`:''}
+        ${loginInfo?`<div class="logininfo">${esc(loginInfo)}</div>`:''}
+        <button class="btn lg" onclick="doReset()">Enviar link de recuperação</button>
+        <div class="loginalt"><a onclick="loginMode='in';loginErr='';loginInfo='';renderLogin()">Voltar para o login</a></div>
+      </div>
+    </div></div>`;
+    return;
+  }
+  document.getElementById('app').innerHTML = `<div class="loginwrap"><div class="loginbox">
+    <div class="loginbrand">WideAds</div>
+    <div class="loginsub">Operação de Vendas · BDR / SDR</div>
+    <div class="loginform">
+      <label class="fld"><span>E-mail</span><input class="inp" id="l_email" type="email" autocomplete="username" placeholder="voce@wideads.com"></label>
+      <label class="fld"><span>Senha</span><input class="inp" id="l_pass" type="password" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAuth()"></label>
+      ${loginErr?`<div class="loginerr">${esc(loginErr)}</div>`:''}
+      ${loginInfo?`<div class="logininfo">${esc(loginInfo)}</div>`:''}
+      <button class="btn lg" onclick="doAuth()">${loginMode==='in'?'Entrar':'Criar conta'}</button>
+      <div class="loginalt">${loginMode==='in'?`Primeiro acesso? <a onclick="loginMode='up';loginErr='';loginInfo='';renderLogin()">Criar conta</a>`:`Já tem conta? <a onclick="loginMode='in';loginErr='';loginInfo='';renderLogin()">Entrar</a>`}</div>
+      ${loginMode==='in'?`<div class="loginalt"><a onclick="loginMode='rec';loginErr='';loginInfo='';renderLogin()">Esqueci minha senha</a></div>`:''}
+    </div>
+  </div></div>`;
+}
+async function doReset(){
+  loginErr=''; loginInfo=''; const email=val('l_email');
+  if(!email){loginErr='Informe seu e-mail.'; return renderLogin();}
+  try{
+    const res=await sb.auth.resetPasswordForEmail(email, {redirectTo: location.href.split('#')[0]});
+    if(res.error){ loginErr=res.error.message; return renderLogin(); }
+    loginInfo='Se o e-mail existir, enviamos um link para redefinir a senha.'; renderLogin();
+  }catch(e){ loginErr='Falha de conexão.'; renderLogin(); }
+}
+async function doAuth(){
+  loginErr=''; const email=val('l_email'), password=val('l_pass');
+  if(!email||!password){loginErr='Preencha e-mail e senha.'; return renderLogin();}
+  try{
+    let res;
+    if(loginMode==='up'){ res=await sb.auth.signUp({email,password}); }
+    else { res=await sb.auth.signInWithPassword({email,password}); }
+    if(res.error){ loginErr=res.error.message; return renderLogin(); }
+    if(loginMode==='up' && !res.data.session){ loginErr='Conta criada. Confirme o e-mail (se exigido) e entre.'; loginMode='in'; return renderLogin(); }
+  }catch(e){ loginErr='Falha de conexão.'; renderLogin(); }
+}
+function renderNewPassword(){
+  document.getElementById('app').innerHTML = `<div class="loginwrap"><div class="loginbox">
+    <div class="loginbrand">WideAds</div>
+    <div class="loginsub">Defina sua nova senha</div>
+    <div class="loginform">
+      <label class="fld"><span>Nova senha</span><input class="inp" id="l_newpass" type="password" autocomplete="new-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSetNewPassword()"></label>
+      ${loginErr?`<div class="loginerr">${esc(loginErr)}</div>`:''}
+      ${loginInfo?`<div class="logininfo">${esc(loginInfo)}</div>`:''}
+      <button class="btn lg" onclick="doSetNewPassword()">Salvar nova senha</button>
+    </div>
+  </div></div>`;
+}
+async function doSetNewPassword(){
+  loginErr=''; loginInfo=''; const password=val('l_newpass');
+  if(!password||password.length<6){loginErr='A senha deve ter ao menos 6 caracteres.'; return renderNewPassword();}
+  try{
+    const res=await sb.auth.updateUser({password});
+    if(res.error){ loginErr=res.error.message; return renderNewPassword(); }
+    loginInfo='Senha atualizada! Carregando...';
+    renderNewPassword();
+    await loadAll(); subscribe(); render();
+  }catch(e){ loginErr='Falha de conexão.'; renderNewPassword(); }
+}
+async function doLogout(){ if(sb) await sb.auth.signOut(); }
+async function loadLeads(){ const {data,error}=await sb.from('leads').select('*').order('id'); if(error){console.warn('load',error.message); leads=[];} else leads=data||[]; }
+async function seedBase(){ const rows=DATA.leads.map(({id,...r})=>r); const {error}=await sb.from('leads').insert(rows); if(error)alert('Erro ao popular: '+error.message); await loadLeads(); render(); }
+async function loadSettings(){
+  const {data:adminRows}=await sb.from('admins').select('email');
+  isAdmin = !!(adminRows && session && adminRows.some(r=>r.email===session.user.email));
+  const {data:row}=await sb.from('settings').select('*').eq('id',1).maybeSingle();
+  if(row){
+    if(Array.isArray(row.reps) && row.reps.length){ REPS.length=0; REPS.push(...row.reps); }
+    if(row.metas && Object.keys(row.metas).length){ Object.assign(M, row.metas); }
+  }
+}
+async function loadAll(){ await Promise.all([loadLeads(), loadSettings()]); }
+let subscribed=false;
+function subscribe(){
+  if(subscribed)return; subscribed=true;
+  sb.channel('leads-rt').on('postgres_changes',{event:'*',schema:'public',table:'leads'},()=>{ loadLeads().then(render); }).subscribe();
+  sb.channel('settings-rt').on('postgres_changes',{event:'*',schema:'public',table:'settings'},()=>{ loadSettings().then(render); }).subscribe();
+}
+function loadSB(){ return new Promise((res,rej)=>{ if(window.supabase)return res(); const s=document.createElement('script'); s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'; s.onload=res; s.onerror=()=>rej(new Error('cdn')); document.head.appendChild(s); }); }
+async function boot(){
+  if(!REMOTE){ render(); return; }
+  document.getElementById('app').innerHTML='<div class="loginwrap"><div class="loginbox"><div class="loginbrand">WideAds</div><div class="loginsub">Carregando...</div></div></div>';
+  try{ await loadSB(); }catch(e){ document.getElementById('app').innerHTML='<div class="loginwrap"><div class="loginbox"><div class="loginbrand">WideAds</div><div class="loginerr">Sem conexão com o servidor de login. Verifique a internet.</div></div></div>'; return; }
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const {data:{session:s}} = await sb.auth.getSession(); session=s;
+  sb.auth.onAuthStateChange((_e,s2)=>{
+    session=s2;
+    if(_e==='PASSWORD_RECOVERY'){ renderNewPassword(); return; }
+    if(session){ loadAll().then(()=>{subscribe(); render();}); } else { subscribed=false; isAdmin=false; renderLogin(); }
+  });
+  if(session){ await loadAll(); subscribe(); render(); } else { renderLogin(); }
+}
+boot();
+</script></body></html>
